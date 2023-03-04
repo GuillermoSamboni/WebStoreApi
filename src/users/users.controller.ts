@@ -20,7 +20,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get('/get')
+  @Get('/findAll')
   findAll(): Promise<StructureResponse<DataUsersResponseDto>> {
     return this.usersService.findAll();
   }
