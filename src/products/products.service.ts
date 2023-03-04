@@ -50,15 +50,16 @@ export class ProductsService {
     return response;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  findOne(id: string) {
+    return this.productsModule.findById(id);
   }
+
 
   update(id: number, updateProductDto: UpdateProductDto) {
     return `This action updates a #${id} product`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    return await this.productsModule.findByIdAndRemove(id);
   }
 }
