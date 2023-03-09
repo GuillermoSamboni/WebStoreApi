@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,20 +11,35 @@ import { DataProductResponseDto } from './dto/response/DataProductResponseDto';
 
 @Injectable()
 export class ProductsService {
-  constructor(@InjectModel(Products.name) private productsModule: Model<ProductsDocument>,) { }
+  constructor(@InjectModel(Products.name) private productModule: Model<ProductsDocument>,) { }
 
-  
-  async create(createProductDto: CreateProductDto) {
-    return await this.productsModule.create(createProductDto)
+  async create(createProductDto: CreateProductDto): Promise<StructureResponse<DataProductResponseDto>> {
+    try {
+      const response = new StructureResponse<DataProductResponseDto>();
+      const createProduct = await this.productModule.create(createProductDto);
+      response.codeStatus = ResponseGlobal.codeSucces;
+      response.message = ResponseGlobal.messageSucces;
+      response.count = 1;
+      response.data = Array.isArray(createProduct) ? createProduct : [createProduct];
+      return response;
+    } catch (error) {      
+      if (error.code === 11000) {
+        const fieldName = Object.keys(error.keyValue)[0]; // Obtiene el nombre del campo que ha causado la violación de restricción única
+        const message = `Duplicate value found for field '${fieldName}'`; // Crea un mensaje de error descriptivo
+        throw new ConflictException(message);
+      }
+
+      throw error;
+    }
   }
- 
-  async findAll(): Promise<StructureResponse<DataProductResponseDto>> {
+
+  async getAll(): Promise<StructureResponse<DataProductResponseDto>> {
     const response = new StructureResponse<DataProductResponseDto>(); // agregamos <dataProductResponseDto> como el parámetro de tipo genérico
-    const products = await this.productsModule.find();
-  
-    response.code = ResponseGlobal.codeSucces;
+    const products = await this.productModule.find();
+
+    response.codeStatus = ResponseGlobal.codeSucces;
     response.message = ResponseGlobal.messageSucces;
-  
+
     response.count = products.length;
     response.data = products.map(product => {
       const productDto = new DataProductResponseDto();
@@ -43,23 +58,53 @@ export class ProductsService {
       productDto.createAt = product.createAt;
       productDto.updateAt = product.updateAt;
       productDto.labels = product.labels;
-  
+
       return productDto;
     });
-  
+
     return response;
   }
 
-  findOne(id: string) {
-    return this.productsModule.findById(id);
+  async findOne(id: string): Promise<StructureResponse<DataProductResponseDto>> {
+    const response = new StructureResponse<DataProductResponseDto>();
+    const productFind = await this.productModule.findById(id);
+    if (!productFind) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    response.codeStatus = ResponseGlobal.codeSucces;
+    response.message = ResponseGlobal.messageSucces;
+    response.count = 1;
+    response.data = Array.isArray(productFind) ? productFind : [productFind];
+    return response;
   }
 
+  async updateProduct(id: string, updateProductDto: UpdateProductDto): Promise<StructureResponse<DataProductResponseDto>> {
+    const response = new StructureResponse<DataProductResponseDto>();
+    const updatedProduct = await this.productModule.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
+    if (!updatedProduct) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    response.codeStatus = ResponseGlobal.codeSucces;
+    response.message = ResponseGlobal.messageSucces;
+    response.count = 1;
+    response.data = Array.isArray(updatedProduct) ? updatedProduct : [updatedProduct];
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+    return response;
   }
 
-  async remove(id: string) {
-    return await this.productsModule.findByIdAndRemove(id);
+  async delete(id: string): Promise<StructureResponse<DataProductResponseDto>> {
+    const response = new StructureResponse<DataProductResponseDto>();
+    const deleteProduct = await this.productModule.findByIdAndRemove(id);
+
+    if (!deleteProduct) {
+      throw new NotFoundException('Product with ID ${id} not found')
+    }
+    response.codeStatus = ResponseGlobal.codeSucces;
+    response.message = ResponseGlobal.messageSucces;
+    response.count = 1;
+    response.data = Array.isArray(deleteProduct) ? deleteProduct : [deleteProduct];
+
+    return response
   }
 }

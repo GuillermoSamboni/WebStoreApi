@@ -1,6 +1,7 @@
 export class StructureResponse<T> {
-    code: number;
-    message: string;
-    count: number;
+    codeStatus: Number;
+    message: String;
+    error: String;
+    count: Number;
     data: Array<T> | T;
 }

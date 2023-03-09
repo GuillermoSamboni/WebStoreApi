@@ -21,12 +21,12 @@ export class UsersService {
     const users = await this.usersModeule.find();
 
     if (users.length <= 0) {
-      response.code = ResponseGlobal.codeSuccesNotFound
+      response.codeStatus = ResponseGlobal.codeSuccesNotFound
       response.message = ResponseGlobal.messageSuccesNotFound;
       response.count = 0
       response.data = []
     } else {
-      response.code = ResponseGlobal.codeSucces;
+      response.codeStatus = ResponseGlobal.codeSucces;
       response.message = ResponseGlobal.messageSucces;
       response.count = users.length;
       response.data = users.map(user => {

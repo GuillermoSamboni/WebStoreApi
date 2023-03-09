@@ -21,7 +21,7 @@ export class Products {
     @Prop({ required: true })
     amountStock: number;
 
-    @Prop({ unique: true, required: true })
+    @Prop({ required: true })
     category: string;
 
     @Prop({ required: true })
@@ -30,7 +30,7 @@ export class Products {
     @Prop({ required: true })
     skuCodeProduct: string;
 
-    @Prop({ unique: true, required: true })
+    @Prop({ required: true })
     brand: string;
 
     @Prop()

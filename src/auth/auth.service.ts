@@ -43,7 +43,7 @@ export class AuthService {
     }
 
     const responseOne = new StructureResponse<DataUsersResponseDto>()
-    responseOne.code = ResponseGlobal.codeSucces;
+    responseOne.codeStatus = ResponseGlobal.codeSucces;
     responseOne.message = ResponseGlobal.messageSucces;
     responseOne.count = 1;
     responseOne.data = findUser
