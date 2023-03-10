@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateShoppingCartDto } from './dto/create-shopping-cart.dto';
 import { UpdateShoppingCartDto } from './dto/update-shopping-cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,6 +8,7 @@ import { StructureResponse } from 'src/utils/StructureResponse';
 import { ShoppingCartResponseDto } from './dto/response/ShoppingCartResponseDto';
 import { ResponseGlobal } from 'src/utils/ResponseGlobal';
 import { QueryUserById } from 'src/utils/QueryUserById';
+import { NotFoundError, identity } from 'rxjs';
 
 @Injectable()
 export class ShoppingCartService {
@@ -30,66 +31,69 @@ export class ShoppingCartService {
 
   async findAll(queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
     const response = new StructureResponse<ShoppingCartResponseDto>();
-    let allProductsInShoppingCart;
-    
-    if (queryUserById && queryUserById._id) {
-      allProductsInShoppingCart = await this.shoppingCartModule.find({ _id: queryUserById._id }).exec();
+    console.log(queryUserById._idUser);
+    // Filtrar los artículos del carrito de compras por _id e id de usuario
+    const shoppingCartItems = await this.shoppingCartModule
+      .find({ _idUser: queryUserById._idUser })
+      .exec();
+    if (shoppingCartItems.length <= 0) {
+      console.log("No hay nada");
+      response.count = 0
+      response.codeStatus = ResponseGlobal.codeSuccesNotFound
+      response.message = ResponseGlobal.messageSuccesNotFound
+      response.data = []
     } else {
-      // Si queryUserById no está definido o no tiene una propiedad _id, devuelve un array vacío
-      allProductsInShoppingCart = [];
+      response.codeStatus = ResponseGlobal.codeSucces
+      response.message = ResponseGlobal.messageSucces
+      response.count = shoppingCartItems.length;
+      response.data = shoppingCartItems;
     }
-  
-    // Devuelve la respuesta
-    response.data = allProductsInShoppingCart;
-    response.count = allProductsInShoppingCart.length;
-  
     return response;
   }
 
-  // async findAll(queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
-  //   const response = new StructureResponse<ShoppingCartResponseDto>()
-  //   const allProductsInShoppingCart = await this.shoppingCartModule.find({ _id: queryUserById._id }).exec();
+  async removeOne(queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
+    try {
+      console.log(queryUserById._idP);
+      
+      const findRemove = await this.shoppingCartModule.findOneAndDelete({ _idUser: queryUserById._idUser, _idP: queryUserById._idP }).exec();
+      if (!findRemove) {
+        throw new NotFoundException(`Product with ID ${queryUserById._idP} not found`);
+      }
+      const response: StructureResponse<ShoppingCartResponseDto> = {
+        codeStatus: ResponseGlobal.codeSucces,
+        message: ResponseGlobal.messageSuccesRemoveItem,
+        count: 1,
+        data: findRemove,
+        error: null
+      };
 
-  //   if (!allProductsInShoppingCart) {
-  //     response.codeStatus = ResponseGlobal.codeNotFound
-  //     response.count = allProductsInShoppingCart.length
-  //     response.message = ResponseGlobal.messageNotFound
-  //     response.error = ResponseGlobal.messageNotFound
-  //     response.data = []
-  //   }
-
-  //   response.codeStatus = ResponseGlobal.codeSucces
-  //   response.count = allProductsInShoppingCart.length
-  //   response.message = ResponseGlobal.messageSucces
-  //   response.error = ResponseGlobal.messageSuccesNotFound
-  //   response.data = allProductsInShoppingCart.map(cart => {
-  //     const cartResponseDto = new ShoppingCartResponseDto()
-  //     cartResponseDto._idP = cart._id.toString()
-  //     cartResponseDto.idProduct = cart.idProduct
-  //     cartResponseDto.name = cart.name
-  //     cartResponseDto.shortDescription = cart.shortDescription
-  //     cartResponseDto.price = cart.price
-  //     cartResponseDto.amount = cart.amount
-  //     cartResponseDto.createAt = cart.createAt
-  //     cartResponseDto.updateAt = cart.updateAt
-  //     cartResponseDto._idUser = cart._idUser
-  //     cartResponseDto.nameUser = cart.nameUser
-  //     return cart
-  //   })
-
-  //   return response
-
-  // }
-
-  findOne(id: number) {
-    return `This action returns a #${id} shoppingCart`;
+      return response;
+    } catch (error) {
+      throw new BadRequestException(`Failed to remove product with ID ${queryUserById._idP}: ${error.message}`);
+    }
   }
 
-  update(id: number, updateShoppingCartDto: UpdateShoppingCartDto) {
-    return `This action updates a #${id} shoppingCart`;
+
+  async removeAll(_idUser: String): Promise<StructureResponse<ShoppingCartResponseDto>> {
+    try {
+      const findRemove = await this.shoppingCartModule.deleteMany({ _idUser: _idUser }).exec();
+      if (!findRemove) {
+        throw new NotFoundException(`Product with ID ${_idUser} not found`);
+      }
+      const response: StructureResponse<ShoppingCartResponseDto> = {
+        codeStatus: ResponseGlobal.codeSucces,
+        message: ResponseGlobal.messageSuccesRemoveItem,
+        count: 1,
+        data: [],
+        error: null
+      };
+
+      return response;
+    } catch (error) {
+      throw new BadRequestException(`Failed to remove product with ID ${_idUser}: ${error.message}`);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} shoppingCart`;
-  }
+
+
 }

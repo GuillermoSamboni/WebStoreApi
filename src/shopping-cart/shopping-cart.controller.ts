@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ShoppingCartService } from './shopping-cart.service';
 import { CreateShoppingCartDto } from './dto/create-shopping-cart.dto';
-import { UpdateShoppingCartDto } from './dto/update-shopping-cart.dto';
 import { StructureResponse } from 'src/utils/StructureResponse';
 import { ShoppingCartResponseDto } from './dto/response/ShoppingCartResponseDto';
 import { QueryUserById } from 'src/utils/QueryUserById';
@@ -18,22 +17,17 @@ export class ShoppingCartController {
   }
 
   @Post('/getMyProductsFromShoppingCart')
-  async findAll(queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
+  async findAll(@Body() queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
     return await this.shoppingCartService.findAll(queryUserById);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shoppingCartService.findOne(+id);
+  @Post('/removeItem')
+  async removeOne(@Body() queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
+    return await this.shoppingCartService.removeOne(queryUserById);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShoppingCartDto: UpdateShoppingCartDto) {
-    return this.shoppingCartService.update(+id, updateShoppingCartDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shoppingCartService.remove(+id);
+  @Delete('/removeAllItems/:_id')
+  async removeAll(@Param('_id') _idUser: String): Promise<StructureResponse<ShoppingCartResponseDto>> {
+    return await this.shoppingCartService.removeAll(_idUser);
   }
 }

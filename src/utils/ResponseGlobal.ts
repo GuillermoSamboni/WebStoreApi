@@ -2,6 +2,8 @@ export class ResponseGlobal {
 
     public static codeSucces: number = 200
     public static messageSucces: string = "Request successful"
+    public static messageSuccesRemoveItem: string = "Request successful, item removed"
+
 
     public static codeSuccesNotFound: number = 204
     public static messageSuccesNotFound: string = "Request successful, No existing data found"
@@ -11,6 +13,5 @@ export class ResponseGlobal {
     public static messageNotFound: string = "Request error, Not Found"
 
     public static codeErrorServer: number = 500
-    public static messageErrorServer: string = "Request error, Internal Error"
-
+    public static messageErrorServer: string = "Request error, Internal Error"    
 }

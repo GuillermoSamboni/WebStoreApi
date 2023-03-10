@@ -1,4 +1,4 @@
 export class QueryUserById {
-    _id: string
-    //id: String
+    _idUser: String
+    _idP: String
 }
