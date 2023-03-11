@@ -42,4 +42,5 @@ export class CreateShoppingCartDto {
     @IsNotEmpty()
     @IsString()
     nameUser: String
+       
 }

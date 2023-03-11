@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { IsNotEmpty, IsString } from "class-validator";
 import { HydratedDocument } from "mongoose";
 
 export type ShoppingCartDocument = HydratedDocument<ShoppingCart>;
@@ -33,7 +34,7 @@ export class ShoppingCart {
     _idUser: String
 
     @Prop({ required: true })
-    nameUser: String
+    nameUser: String    
 }
 
 export const ShoppingCartSchema = SchemaFactory.createForClass(ShoppingCart);

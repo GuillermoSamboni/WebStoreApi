@@ -18,12 +18,19 @@ export class ShoppingCartService {
   async addProductToShoppingCart(createShoppingCartDto: CreateShoppingCartDto): Promise<StructureResponse<ShoppingCartResponseDto>> {
     try {
       const response = new StructureResponse<ShoppingCartResponseDto>()
-      const addProduct = await this.shoppingCartModule.create(createShoppingCartDto)
-      response.codeStatus = ResponseGlobal.codeSucces;
-      response.message = ResponseGlobal.messageSucces;
-      response.count = 1;
-      response.data = Array.isArray(addProduct) ? addProduct : [addProduct];
-      return response
+      const itemExist = await this.shoppingCartModule.findOne({ _idUser: createShoppingCartDto._idUser, _idP: createShoppingCartDto._idP }).exec()
+      console.log(createShoppingCartDto._idUser);
+
+      if (itemExist) {
+        throw new ConflictException("Item exist");
+      } else {
+        const addProduct = await this.shoppingCartModule.create(createShoppingCartDto)
+        response.codeStatus = ResponseGlobal.codeSucces;
+        response.message = ResponseGlobal.messageSucces;
+        response.count = 1;
+        response.data = Array.isArray(addProduct) ? addProduct : [addProduct];
+        return response
+      }
     } catch (error) {
       throw new ConflictException(error.message);
     }
@@ -54,7 +61,7 @@ export class ShoppingCartService {
   async removeOne(queryUserById: QueryUserById): Promise<StructureResponse<ShoppingCartResponseDto>> {
     try {
       console.log(queryUserById._idP);
-      
+
       const findRemove = await this.shoppingCartModule.findOneAndDelete({ _idUser: queryUserById._idUser, _idP: queryUserById._idP }).exec();
       if (!findRemove) {
         throw new NotFoundException(`Product with ID ${queryUserById._idP} not found`);
